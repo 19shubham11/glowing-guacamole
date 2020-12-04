@@ -9,6 +9,7 @@ import (
 
 type PlayerStore interface {
 	GetPlayerScore(name string) int
+	RecordWin(name string)
 }
 
 type PlayerServer struct {
@@ -26,12 +27,14 @@ func (p *PlayerServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *PlayerServer) processWin(w http.ResponseWriter, r *http.Request) {
+	player := getPlayerName(r.URL.Path)
 	w.WriteHeader(http.StatusAccepted)
+	p.store.RecordWin(player)
 	return
 }
 
 func (p *PlayerServer) showScore(w http.ResponseWriter, r *http.Request) {
-	player := strings.TrimPrefix(r.URL.Path, "/players/")
+	player := getPlayerName(r.URL.Path)
 	score := p.store.GetPlayerScore(player)
 
 	if score == 0 {
@@ -50,4 +53,8 @@ func GetPlayerScore(name string) int {
 		return 10
 	}
 	return 0
+}
+
+func getPlayerName(url string) string {
+	return strings.TrimPrefix(url, "/players/")
 }
