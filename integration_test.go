@@ -1,29 +1,40 @@
 package main
 
 import (
-	"fmt"
-	"testing"
+	models "fantasy_league/Models"
+	helpers "fantasy_league/TestHelpers"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 )
 
 func TestRecordingWinsAndRetreivingThem(t *testing.T) {
 	store := NewInMemoryPlayerStore()
 	server := NewPlayerServer(store)
-	player := "lenny"
-	server.ServeHTTP(httptest.NewRecorder(), newPostWinRequest(player))
-    server.ServeHTTP(httptest.NewRecorder(), newPostWinRequest(player))
-    server.ServeHTTP(httptest.NewRecorder(), newPostWinRequest(player))
+	playerName := "lenny"
+	server.ServeHTTP(httptest.NewRecorder(), helpers.NewPostScoreRequest(playerName))
+	server.ServeHTTP(httptest.NewRecorder(), helpers.NewPostScoreRequest(playerName))
+	server.ServeHTTP(httptest.NewRecorder(), helpers.NewPostScoreRequest(playerName))
 
-    response := httptest.NewRecorder()
-    server.ServeHTTP(response, newGetScoreRequest(player))
-    assertStatus(t, response.Code, http.StatusOK)
+	t.Run("Get Score", func(t *testing.T) {
+		request := helpers.NewGetScoreRequest(playerName)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		helpers.AssertStatus(t, response.Code, http.StatusOK)
+		helpers.AssertResponseBody(t, response.Body.String(), "3")
+	})
 
-    assertResponseBody(t, response.Body.String(), "3")
+	t.Run("Get League", func(t *testing.T) {
+		request := helpers.NewGetLeagueRequest()
+		response := httptest.NewRecorder()
 
-}
+		server.ServeHTTP(response, request)
+		helpers.AssertStatus(t, response.Code, http.StatusOK)
 
-func newPostWinRequest(name string) *http.Request {
-	req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/players/%s", name), nil)
-	return req
+		got := helpers.ParseLeagueFromResponse(t, response.Body)
+		want := []models.Player{
+			{Name: playerName, Wins: 3},
+		}
+		helpers.AssertLeague(t, got, want)
+	})
 }

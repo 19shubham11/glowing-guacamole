@@ -1,15 +1,19 @@
 package main
 
 import (
+	"encoding/json"
+	models "fantasy_league/Models"
 	"fmt"
 	"net/http"
 	"strings"
 )
 
+const jsonContentType = "application/json"
 
 type PlayerStore interface {
 	GetPlayerScore(name string) int
 	RecordWin(name string)
+	GetLeague() []models.Player
 }
 
 type PlayerServer struct {
@@ -17,7 +21,7 @@ type PlayerServer struct {
 	http.Handler
 }
 
-func NewPlayerServer(store PlayerStore) * PlayerServer {
+func NewPlayerServer(store PlayerStore) *PlayerServer {
 
 	p := new(PlayerServer)
 	p.store = store
@@ -33,15 +37,16 @@ func NewPlayerServer(store PlayerStore) * PlayerServer {
 }
 
 func (p *PlayerServer) leagueHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("content-type", "application/json")
+	json.NewEncoder(w).Encode(p.store.GetLeague())
 }
 
-func(p *PlayerServer) playersHandler(w http.ResponseWriter, r *http.Request) {
+func (p *PlayerServer) playersHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		p.processWin(w, r)
 	case http.MethodGet:
-		p.showScore(w, r)	
+		p.showScore(w, r)
 	}
 }
 
