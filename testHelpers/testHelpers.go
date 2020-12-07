@@ -28,14 +28,14 @@ func NewGetLeagueRequest() *http.Request {
 	return req
 }
 
+// could be abstracted further as assert-helpers maybe
+
 func AssertResponseBody(t *testing.T, got, want string) {
 	t.Helper()
 	if got != want {
 		t.Fatalf("Got %q want %q", got, want)
 	}
 }
-
-// could be abstracted further as assert-helpers maybe
 
 func AssertStatus(t *testing.T, got, want int) {
 	t.Helper()
@@ -65,6 +65,5 @@ func ParseLeagueFromResponse(t *testing.T, body io.Reader) (league []models.Play
 	if err != nil {
 		t.Fatalf("Unable to parse response from server %q into slice of Player, '%v'", body, err)
 	}
-
 	return
 }

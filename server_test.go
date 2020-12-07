@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	models "fantasy_league/Models"
 	helpers "fantasy_league/TestHelpers"
 	"net/http"
@@ -143,14 +142,6 @@ func TestLeague(t *testing.T) {
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
-
-		var got []models.Player
-
-		err := json.NewDecoder(response.Body).Decode(&got)
-
-		if err != nil {
-			t.Fatalf("Unable to parse response from server %q into slice of Player, '%v'", response.Body, err)
-		}
 		helpers.AssertStatus(t, response.Code, http.StatusOK)
 	})
 
