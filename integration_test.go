@@ -13,7 +13,7 @@ func TestRecordingWinsAndRetreivingThem(t *testing.T) {
 	database, cleandb := helpers.CreateTempFile(t, "")
 	defer cleandb()
 
-	store := &FileSystemPlayerStore{database}
+	store := &FileSystemPlayerStore{database, nil}
 	server := NewPlayerServer(store)
 	playerName := "lenny"
 	server.ServeHTTP(httptest.NewRecorder(), helpers.NewPostScoreRequest(playerName))

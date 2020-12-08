@@ -165,15 +165,16 @@ func TestFileSystemStore(t *testing.T) {
 		db, cleanDatabase := helpers.CreateTempFile(t, `[
 			{"Name": "Arthur", "Wins": 10},
 			{"Name": "Dutch", "Wins": 33}]`)
-
-		store := FileSystemPlayerStore{db}
 		
-		got := store.GetLeague()
-		want := []models.Player{
+		league := League{
 			{"Arthur", 10},
 			{"Dutch", 33},
 		}
 
+		store := FileSystemPlayerStore{db, league}
+
+		got := store.GetLeague()
+		want := league
 		defer cleanDatabase()
 
 		helpers.AssertLeague(t, got, want)
@@ -188,7 +189,12 @@ func TestFileSystemStore(t *testing.T) {
 			{"Name": "Arthur", "Wins": 10},
 			{"Name": "Dutch", "Wins": 33}]`)
 
-		store := FileSystemPlayerStore{db}
+		league := League{
+			{"Arthur", 10},
+			{"Dutch", 33},
+		}
+
+		store := FileSystemPlayerStore{db, league}
 
 		got := store.GetPlayerScore("Arthur")
 		want := 10
@@ -206,7 +212,12 @@ func TestFileSystemStore(t *testing.T) {
         {"Name": "Dutch", "Wins": 33}]`)
 		defer cleanDatabase()
 
-		store := FileSystemPlayerStore{database}
+		league := League{
+			{"Arthur", 10},
+			{"Dutch", 33},
+		}
+
+		store := FileSystemPlayerStore{database, league}
 
 		playerName := "Arthur"
 		store.RecordWin(playerName)
@@ -225,16 +236,21 @@ func TestFileSystemStore(t *testing.T) {
 			{"Name": "Dutch", "Wins": 33}]`)
 			defer cleanDatabase()
 	
-			store := FileSystemPlayerStore{database}
-	
-			playerName := "Lenny"
-			store.RecordWin(playerName)
-	
-			got := store.GetPlayerScore(playerName)
-			want := 1
-	
-			if got != want {
-				t.Errorf("got %d want %d", got ,want)
-			}
+		league := League{
+			{"Arthur", 10},
+			{"Dutch", 33},
+		}
+
+		store := FileSystemPlayerStore{database, league}
+
+		playerName := "Lenny"
+		store.RecordWin(playerName)
+
+		got := store.GetPlayerScore(playerName)
+		want := 1
+
+		if got != want {
+			t.Errorf("got %d want %d", got ,want)
+		}
 	})
 }
