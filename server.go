@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	models "fantasy_league/Models"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,7 +12,7 @@ const jsonContentType = "application/json"
 type PlayerStore interface {
 	GetPlayerScore(name string) int
 	RecordWin(name string)
-	GetLeague() []models.Player
+	GetLeague() League
 }
 
 type PlayerServer struct {

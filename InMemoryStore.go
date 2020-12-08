@@ -20,8 +20,8 @@ func (i *InMemoryPlayerStore) GetPlayerScore(name string) int {
 	return i.store[name]
 }
 
-func (i *InMemoryPlayerStore) GetLeague() []models.Player {
-	var league []models.Player
+func (i *InMemoryPlayerStore) GetLeague() League {
+	var league League
 
 	for name, wins := range i.store {
 		league = append(league, models.Player{Name: name, Wins: wins})

@@ -1,10 +1,12 @@
 package testHelpers
 
 import (
+	"io/ioutil"
 	"encoding/json"
 	models "fantasy_league/Models"
 	"fmt"
 	"io"
+	"os"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -67,3 +69,24 @@ func ParseLeagueFromResponse(t *testing.T, body io.Reader) (league []models.Play
 	}
 	return
 }
+
+
+
+func CreateTempFile(t *testing.T, initialData string)(io.ReadWriteSeeker, func()) {
+	t.Helper()
+	tmpFile, err := ioutil.TempFile("", "db")
+
+	if err != nil {
+		t.Fatalf("Could not create temp file!! %v", err)
+	}
+	
+	tmpFile.Write([]byte(initialData))
+
+	removeFile := func() {
+		tmpFile.Close()
+		os.Remove(tmpFile.Name())
+
+	}
+	return tmpFile, removeFile
+}
+

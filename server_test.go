@@ -11,7 +11,7 @@ import (
 type StubPlayerStore struct {
 	scores   map[string]int
 	winCalls []string
-	league   []models.Player
+	league   League
 }
 
 func (s *StubPlayerStore) GetPlayerScore(name string) int {
@@ -23,7 +23,7 @@ func (s *StubPlayerStore) RecordWin(name string) {
 	s.winCalls = append(s.winCalls, name)
 }
 
-func (s *StubPlayerStore) GetLeague() []models.Player {
+func (s *StubPlayerStore) GetLeague() League {
 	return s.league
 }
 
@@ -154,5 +154,87 @@ func TestLeague(t *testing.T) {
 		got := helpers.ParseLeagueFromResponse(t, response.Body)
 		helpers.AssertStatus(t, response.Code, http.StatusOK)
 		helpers.AssertLeague(t, got, wantedLeague)
+	})
+}
+
+func TestFileSystemStore(t *testing.T) {
+
+
+	t.Run("/league from a reader", func(t *testing.T){
+
+		db, cleanDatabase := helpers.CreateTempFile(t, `[
+			{"Name": "Arthur", "Wins": 10},
+			{"Name": "Dutch", "Wins": 33}]`)
+
+		store := FileSystemPlayerStore{db}
+		
+		got := store.GetLeague()
+		want := []models.Player{
+			{"Arthur", 10},
+			{"Dutch", 33},
+		}
+
+		defer cleanDatabase()
+
+		helpers.AssertLeague(t, got, want)
+
+		// read again, using readseeker for this purpose!
+		got = store.GetLeague()
+		helpers.AssertLeague(t, got, want)
+	})
+
+	t.Run("get player score", func(t *testing.T){
+		db, cleanDatabase := helpers.CreateTempFile(t, `[
+			{"Name": "Arthur", "Wins": 10},
+			{"Name": "Dutch", "Wins": 33}]`)
+
+		store := FileSystemPlayerStore{db}
+
+		got := store.GetPlayerScore("Arthur")
+		want := 10
+
+		defer cleanDatabase()
+
+		if got != want {
+			t.Errorf("got %d want %d", got ,want)
+		}
+	})
+
+	t.Run("store win for existing players", func(t *testing.T){
+		database, cleanDatabase := helpers.CreateTempFile(t, `[
+        {"Name": "Arthur", "Wins": 10},
+        {"Name": "Dutch", "Wins": 33}]`)
+		defer cleanDatabase()
+
+		store := FileSystemPlayerStore{database}
+
+		playerName := "Arthur"
+		store.RecordWin(playerName)
+
+		got := store.GetPlayerScore(playerName)
+		want := 11
+
+		if got != want {
+			t.Errorf("got %d want %d", got ,want)
+		}
+	})
+
+	t.Run("store wins for new players", func(t *testing.T){
+		database, cleanDatabase := helpers.CreateTempFile(t, `[
+			{"Name": "Arthur", "Wins": 10},
+			{"Name": "Dutch", "Wins": 33}]`)
+			defer cleanDatabase()
+	
+			store := FileSystemPlayerStore{database}
+	
+			playerName := "Lenny"
+			store.RecordWin(playerName)
+	
+			got := store.GetPlayerScore(playerName)
+			want := 1
+	
+			if got != want {
+				t.Errorf("got %d want %d", got ,want)
+			}
 	})
 }
