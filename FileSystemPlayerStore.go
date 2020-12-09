@@ -1,27 +1,72 @@
 package main
 
 import (
+	"sort"
+	"os"
 	"encoding/json"
-	"io"
 	models "fantasy_league/Models"
+	"fmt"
 )
 
+
+type tape struct{
+	file *os.File
+}
+
+func (t *tape) Write(p []byte) (n int, err error) {
+	t.file.Truncate(0)
+	t.file.Seek(0, 0)
+	return t.file.Write(p)
+}
+
 type FileSystemPlayerStore struct {
-	database io.ReadWriteSeeker
+	database *json.Encoder
 	league League
 }
 
-func NewFileSystemPlayerStore(database io.ReadWriteSeeker) *FileSystemPlayerStore {
-	database.Seek(0,0)
-	league, _ := NewLeague(database)
+
+func initialisePlayerDBFile(file *os.File) error {
+	file.Seek(0, 0)
+	info, err := file.Stat()
+
+	if err != nil {
+		return fmt.Errorf("problem getting stats of the file %v", err)
+	}
+
+	if info.Size() == 0 {
+		file.Write([]byte("[]"))
+		file.Seek(0,0)
+	}
+	return err
+}
+
+
+
+func NewFileSystemPlayerStore(file *os.File) (*FileSystemPlayerStore, error) {
+	file.Seek(0,0)
+
+	fileInitErr := initialisePlayerDBFile(file)
+	
+	if fileInitErr != nil {
+		return nil, fmt.Errorf("problems initialising empty file %v", fileInitErr)
+	}
+
+	league, err := NewLeague(file)
+
+	if err != nil {
+		return nil, fmt.Errorf("problem parsing store from file %v", err)
+	}
 
 	return &FileSystemPlayerStore{
-		database: database,
+		database: json.NewEncoder(&tape{file}),
 		league: league,
-	}
+	}, nil
 }
 
 func (f *FileSystemPlayerStore) GetLeague() League {
+	sort.Slice(f.league, func(i, j int) bool{
+		return f.league[i].Wins > f.league[j].Wins
+	})
     return f.league
 }
 
@@ -44,7 +89,5 @@ func (f *FileSystemPlayerStore) RecordWin(name string) {
 	if player == nil {
 		f.league = append(f.league, models.Player{name, 1})
 	}
-
-	f.database.Seek(0,0)
-	json.NewEncoder(f.database).Encode(f.league)
+	f.database.Encode(f.league)
 }

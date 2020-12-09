@@ -6,14 +6,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"log"
 )
 
 func TestRecordingWinsAndRetreivingThem(t *testing.T) {
 
-	database, cleandb := helpers.CreateTempFile(t, "")
+	file, cleandb := helpers.CreateTempFile(t, `[]`)
 	defer cleandb()
 
-	store := &FileSystemPlayerStore{database, nil}
+	store, err := NewFileSystemPlayerStore(file)
+	
+	if err != nil {
+		log.Fatalf("problem creating file system player store, %v ", err)
+	}
+
 	server := NewPlayerServer(store)
 	playerName := "lenny"
 	server.ServeHTTP(httptest.NewRecorder(), helpers.NewPostScoreRequest(playerName))

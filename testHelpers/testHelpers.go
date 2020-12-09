@@ -72,7 +72,7 @@ func ParseLeagueFromResponse(t *testing.T, body io.Reader) (league []models.Play
 
 
 
-func CreateTempFile(t *testing.T, initialData string)(io.ReadWriteSeeker, func()) {
+func CreateTempFile(t *testing.T, initialData string)(*os.File, func()) {
 	t.Helper()
 	tmpFile, err := ioutil.TempFile("", "db")
 
@@ -90,3 +90,9 @@ func CreateTempFile(t *testing.T, initialData string)(io.ReadWriteSeeker, func()
 	return tmpFile, removeFile
 }
 
+func AssertNoError(t *testing.T, err error) {
+    t.Helper()
+    if err != nil {
+        t.Fatalf("didn't expect an error but got one, %v", err)
+    }
+}

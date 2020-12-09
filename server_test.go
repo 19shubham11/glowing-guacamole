@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"io/ioutil"
 )
 
 type StubPlayerStore struct {
@@ -160,18 +161,18 @@ func TestLeague(t *testing.T) {
 func TestFileSystemStore(t *testing.T) {
 
 
-	t.Run("/league from a reader", func(t *testing.T){
+	t.Run("/league from a reader sorted", func(t *testing.T){
 
 		db, cleanDatabase := helpers.CreateTempFile(t, `[
 			{"Name": "Arthur", "Wins": 10},
 			{"Name": "Dutch", "Wins": 33}]`)
 		
 		league := League{
-			{"Arthur", 10},
 			{"Dutch", 33},
+			{"Arthur", 10},
 		}
 
-		store := FileSystemPlayerStore{db, league}
+		store, err := NewFileSystemPlayerStore(db)
 
 		got := store.GetLeague()
 		want := league
@@ -182,19 +183,14 @@ func TestFileSystemStore(t *testing.T) {
 		// read again, using readseeker for this purpose!
 		got = store.GetLeague()
 		helpers.AssertLeague(t, got, want)
+		helpers.AssertNoError(t, err)
 	})
 
 	t.Run("get player score", func(t *testing.T){
 		db, cleanDatabase := helpers.CreateTempFile(t, `[
 			{"Name": "Arthur", "Wins": 10},
 			{"Name": "Dutch", "Wins": 33}]`)
-
-		league := League{
-			{"Arthur", 10},
-			{"Dutch", 33},
-		}
-
-		store := FileSystemPlayerStore{db, league}
+		store, err := NewFileSystemPlayerStore(db)
 
 		got := store.GetPlayerScore("Arthur")
 		want := 10
@@ -204,6 +200,7 @@ func TestFileSystemStore(t *testing.T) {
 		if got != want {
 			t.Errorf("got %d want %d", got ,want)
 		}
+		helpers.AssertNoError(t, err)
 	})
 
 	t.Run("store win for existing players", func(t *testing.T){
@@ -211,13 +208,7 @@ func TestFileSystemStore(t *testing.T) {
         {"Name": "Arthur", "Wins": 10},
         {"Name": "Dutch", "Wins": 33}]`)
 		defer cleanDatabase()
-
-		league := League{
-			{"Arthur", 10},
-			{"Dutch", 33},
-		}
-
-		store := FileSystemPlayerStore{database, league}
+		store, err := NewFileSystemPlayerStore(database)
 
 		playerName := "Arthur"
 		store.RecordWin(playerName)
@@ -228,6 +219,8 @@ func TestFileSystemStore(t *testing.T) {
 		if got != want {
 			t.Errorf("got %d want %d", got ,want)
 		}
+
+		helpers.AssertNoError(t, err)
 	})
 
 	t.Run("store wins for new players", func(t *testing.T){
@@ -235,13 +228,8 @@ func TestFileSystemStore(t *testing.T) {
 			{"Name": "Arthur", "Wins": 10},
 			{"Name": "Dutch", "Wins": 33}]`)
 			defer cleanDatabase()
-	
-		league := League{
-			{"Arthur", 10},
-			{"Dutch", 33},
-		}
 
-		store := FileSystemPlayerStore{database, league}
+		store, err := NewFileSystemPlayerStore(database)
 
 		playerName := "Lenny"
 		store.RecordWin(playerName)
@@ -252,5 +240,35 @@ func TestFileSystemStore(t *testing.T) {
 		if got != want {
 			t.Errorf("got %d want %d", got ,want)
 		}
+
+		helpers.AssertNoError(t, err)
 	})
+
+	t.Run("works with an empty file", func(t *testing.T){
+		database, cleanDatabase := helpers.CreateTempFile(t, "")
+		defer cleanDatabase()
+		_, err := NewFileSystemPlayerStore(database)
+		helpers.AssertNoError(t, err)
+	})
+}
+
+
+func TestTape_Write(t *testing.T) {
+	file, clean := helpers.CreateTempFile(t, "helooooo")
+	defer clean()
+
+	tape := &tape{file}
+	want := "abcdds"
+	tape.Write([]byte(want))
+
+	file.Seek(0,0)
+
+	newFileContents, _ := ioutil.ReadAll(file)
+
+	got := string(newFileContents)
+
+
+	if got != want {
+		t.Errorf("got %s want %s", got, want)
+	}
 }

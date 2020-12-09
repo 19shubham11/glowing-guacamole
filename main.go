@@ -10,16 +10,21 @@ const dbFileName = "game.db.json"
 const filePermissions = 0666
 
 func main() {
-	db, err := os.OpenFile(dbFileName, os.O_RDWR|os.O_CREATE, 0666)
+	file, fileCreationError := os.OpenFile(dbFileName, os.O_RDWR|os.O_CREATE, 0666)
 	
-	if err != nil {
-		log.Fatalf("could not open file %s , %v", dbFileName, err)
+	if fileCreationError != nil {
+		log.Fatalf("could not open file %s , %v", dbFileName, fileCreationError)
 	}
 
-	store := &FileSystemPlayerStore{db, nil}
+	store, storeInitError := NewFileSystemPlayerStore(file)
+
+	if storeInitError != nil {
+		log.Fatalf("problem creating file system player store, %v ", storeInitError)
+	}
+
 	server := NewPlayerServer(store)
 
-	if err := http.ListenAndServe(":5000", server); err != nil {
-		log.Fatalf("could not listen on port 5000 %v", err)
+	if serverError := http.ListenAndServe(":5000", server); serverError != nil {
+		log.Fatalf("could not listen on port 5000 %v", serverError)
 	}
 }
