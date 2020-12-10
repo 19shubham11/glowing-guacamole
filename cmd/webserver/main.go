@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"net/http"
+	game "fantasy_league/Game"
 )
 
 const dbFileName = "game.db.json"
@@ -16,13 +17,13 @@ func main() {
 		log.Fatalf("could not open file %s , %v", dbFileName, fileCreationError)
 	}
 
-	store, storeInitError := NewFileSystemPlayerStore(file)
+	store, storeInitError := game.NewFileSystemPlayerStore(file)
 
 	if storeInitError != nil {
 		log.Fatalf("problem creating file system player store, %v ", storeInitError)
 	}
 
-	server := NewPlayerServer(store)
+	server := game.NewPlayerServer(store)
 
 	if serverError := http.ListenAndServe(":5000", server); serverError != nil {
 		log.Fatalf("could not listen on port 5000 %v", serverError)

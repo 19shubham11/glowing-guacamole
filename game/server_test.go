@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	models "fantasy_league/Models"
