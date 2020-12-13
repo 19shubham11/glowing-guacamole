@@ -1,7 +1,7 @@
 package game
 
 import (
-	models "fantasy_league/Models"
+	models "github.com/19shubham11/glowing-guacamole/models"
 )
 
 func NewInMemoryPlayerStore() *InMemoryPlayerStore {

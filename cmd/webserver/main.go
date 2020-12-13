@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 	"net/http"
-	game "fantasy_league/Game"
+	game "github.com/19shubham11/glowing-guacamole/game"
 )
 
 const dbFileName = "game.db.json"

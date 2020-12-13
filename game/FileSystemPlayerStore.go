@@ -4,7 +4,7 @@ import (
 	"sort"
 	"os"
 	"encoding/json"
-	models "fantasy_league/Models"
+	models "github.com/19shubham11/glowing-guacamole/models"
 	"fmt"
 )
 

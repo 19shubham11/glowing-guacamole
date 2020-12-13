@@ -3,7 +3,7 @@ package testHelpers
 import (
 	"io/ioutil"
 	"encoding/json"
-	models "fantasy_league/Models"
+	models "github.com/19shubham11/glowing-guacamole/models"
 	"fmt"
 	"io"
 	"os"

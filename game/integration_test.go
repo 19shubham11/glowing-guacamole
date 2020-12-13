@@ -1,8 +1,8 @@
 package game
 
 import (
-	models "fantasy_league/Models"
-	helpers "fantasy_league/TestHelpers"
+	models "github.com/19shubham11/glowing-guacamole/models"
+	helpers "github.com/19shubham11/glowing-guacamole/testHelpers"
 	"net/http"
 	"net/http/httptest"
 	"testing"

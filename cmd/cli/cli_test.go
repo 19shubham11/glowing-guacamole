@@ -2,7 +2,7 @@ package main
 
 import (
 	"strings"
-	game "fantasy_league/Game"
+	game "github.com/19shubham11/glowing-guacamole/game"
 	"testing"
 )
 

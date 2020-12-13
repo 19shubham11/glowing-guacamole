@@ -4,7 +4,7 @@ import (
 	"io"
 	"fmt"
 	"encoding/json"
-	models "fantasy_league/Models"
+	models "github.com/19shubham11/glowing-guacamole/models"
 )
 
 type League []models.Player
